@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuthentiQ - Guaranteed & Genuine Brand Registry</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <i class="fa-solid fa-shield-halved text-xl"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-xl tracking-tight text-white">Authenti<span class="text-emerald-400">Q</span></span>
+          <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">100% Curated</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="admin.html" class="text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition">
+          <i class="fa-solid fa-lock mr-1"></i> Admin
+        </a>
+        <button onclick="openModal('reportModal')" class="text-xs px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition">
+          <i class="fa-solid fa-triangle-exclamation mr-1"></i> Report Scam
+        </button>
+        <button onclick="openModal('auditModal')" class="text-xs px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition">
+          Apply for Audit
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
+    <div class="text-center max-w-2xl mx-auto mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs font-medium text-emerald-400 mb-3">
+        <i class="fa-solid fa-circle-check"></i> Live Cloud Database Connected
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+        Check Any Brand's <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Guarantee</span>
+      </h1>
+      <p class="text-slate-400 text-sm sm:text-base">
+        Only 100% legally audited and certified genuine brands are listed. If a brand is not here, proceed with extreme caution.
+      </p>
+    </div>
+
+    <div class="max-w-2xl mx-auto mb-10">
+      <form id="searchForm" onsubmit="handleSearch(event)" class="relative">
+        <div class="relative flex items-center">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 text-slate-400 text-lg"></i>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search by brand name or website (e.g., Apple, Minimalist)..."
+            class="w-full bg-slate-900 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl py-4 pl-12 pr-28 text-white placeholder-slate-500 focus:outline-none transition shadow-lg"
+          />
+          <button
+            type="submit"
+            class="absolute right-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-md"
+          >
+            Verify
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="searchAlertContainer" class="max-w-2xl mx-auto mb-8"></div>
+
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Browse Audited Brands by Sector</h2>
+        <span id="brandCount" class="text-xs text-slate-400 font-medium">Loading...</span>
+      </div>
+      <div id="sectorTabs" class="flex gap-2 overflow-x-auto pb-2">
+        <button onclick="filterSector('ALL')" class="sector-tab active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-500 text-slate-950 transition">
+          All Sectors
+        </button>
+      </div>
+    </div>
+
+    <div id="brandsContainer" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </main>
+
+  <div id="dossierModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 relative">
+      <button onclick="closeModal('dossierModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div id="dossierContent"></div>
+    </div>
+  </div>
+
+  <div id="auditModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeModal('auditModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-shield text-emerald-400"></i> Apply for Brand Audit
+      </h3>
+      <p class="text-xs text-slate-400 mb-4">Submit your brand credentials for inclusion in the AuthentiQ Guaranteed Registry.</p>
+      <form onsubmit="handleAuditSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Brand Name</label>
+          <input required id="auditBrandName" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Official Website</label>
+          <input required id="auditWebsite" type="url" placeholder="https://" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Business Registration / CIN / GSTIN</label>
+          <input required id="auditCorporateId" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Official Contact Email</label>
+          <input required id="auditEmail" type="email" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition mt-2">
+          Submit for Audit Review
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="reportModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 relative">
+      <button onclick="closeModal('reportModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-red-400 mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation"></i> Report Fraud / Scam Brand
+      </h3>
+      <p class="text-xs text-slate-400 mb-4">Help us flag phishing websites, fake clones, or unverified fraudulent shops.</p>
+      <form onsubmit="handleScamReport(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Suspicious Brand or Website URL</label>
+          <input required id="scamUrl" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Incident Details</label>
+          <textarea required id="scamDetails" rows="3" placeholder="Describe the counterfeit product, non-delivery, or scam..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Your Email (Optional)</label>
+          <input id="scamEmail" type="email" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white font-bold text-xs transition mt-2">
+          Submit Scam Report
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://yadcxfczozsydrexquev.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_S-81oDv-dMWj8j0HsjrAoA_p_-c7TzJ";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allBrands = [];
+
+    async function initializeRegistry() {
+      try {
+        const { data: sectors } = await supabase.from('sectors').select('*');
+        if (sectors) renderSectorTabs(sectors);
+
+        const { data: brands, error } = await supabase
+          .from('brands')
+          .select(`
+            id, name, slug, official_website, founded_year, headquarters, is_guaranteed,
+            brand_category_rankings (
+              rank_position, rank_rationale,
+              categories ( name, sector_id, sectors ( name ) )
+            ),
+            brand_verifications (
+              reg_number, trademark_reg_no, compliance_certifications, verified_by_auditor
+            )
+          `);
+
+        if (error) throw error;
+
+        allBrands = (brands || []).map(b => {
+          const ranking = b.brand_category_rankings?.[0] || {};
+          const category = ranking.categories || {};
+          const sector = category.sectors || {};
+          const verification = b.brand_verifications?.[0] || {};
+
+          return {
+            id: b.id,
+            name: b.name,
+            slug: b.slug,
+            website: b.official_website,
+            headquarters: b.headquarters,
+            foundedYear: b.founded_year,
+            isGuaranteed: b.is_guaranteed,
+            rank: ranking.rank_position || 99,
+            rankRationale: ranking.rank_rationale || 'Audited authentic brand.',
+            categoryName: category.name || 'General',
+            sectorName: sector.name || 'Uncategorized',
+            regNumber: verification.reg_number || 'CIN/GST Verified',
+            trademark: verification.trademark_reg_no || 'Registered',
+            compliance: verification.compliance_certifications || 'Industry Certified',
+            auditor: verification.verified_by_auditor || 'AuthentiQ Trust Board'
+          };
+        }).sort((a, b) => a.rank - b.rank);
+
+        renderBrands(allBrands);
+      } catch (err) {
+        document.getElementById('brandCount').textContent = "Database loading error";
+      }
+    }
+
+    function renderSectorTabs(sectors) {
+      const tabs = document.getElementById('sectorTabs');
+      sectors.forEach(s => {
+        const btn = document.createElement('button');
+        btn.textContent = s.name;
+        btn.className = "sector-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition";
+        btn.onclick = () => filterSector(s.name, btn);
+        tabs.appendChild(btn);
+      });
+    }
+
+    function filterSector(sectorName, clickedBtn = null) {
+      document.querySelectorAll('.sector-tab').forEach(b => {
+        b.className = "sector-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition";
+      });
+      if (clickedBtn) {
+        clickedBtn.className = "sector-tab active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-500 text-slate-950 transition";
+      } else {
+        document.querySelector('.sector-tab').className = "sector-tab active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-500 text-slate-950 transition";
+      }
+
+      const filtered = sectorName === 'ALL' ? allBrands : allBrands.filter(b => b.sectorName === sectorName);
+      renderBrands(filtered);
+    }
+
+    function renderBrands(brands) {
+      const container = document.getElementById('brandsContainer');
+      document.getElementById('brandCount').textContent = `${brands.length} Verified Brands`;
+      container.innerHTML = '';
+
+      if (brands.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-8 text-center text-slate-500 text-sm">No guaranteed brands registered under this sector yet.</div>`;
+        return;
+      }
+
+      brands.forEach(brand => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <i class="fa-solid fa-crown text-[10px]"></i> Rank #${brand.rank}
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <i class="fa-solid fa-shield-check"></i> Guaranteed
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-1">${brand.name}</h3>
+            <p class="text-xs text-slate-400 mb-3">${brand.categoryName} • ${brand.sectorName}</p>
+            <p class="text-xs text-slate-300 line-clamp-2 mb-4 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+              "${brand.rankRationale}"
+            </p>
+          </div>
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-[11px] font-mono text-slate-500">${brand.regNumber}</span>
+            <button onclick="showDossier(${brand.id})" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+              View Audit <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function handleSearch(e) {
+      e.preventDefault();
+      const term = document.getElementById('searchInput').value.trim().toLowerCase();
+      const alertBox = document.getElementById('searchAlertContainer');
+      alertBox.innerHTML = '';
+
+      if (!term) return;
+
+      const matched = allBrands.find(b =>
+        b.name.toLowerCase().includes(term) ||
+        b.website.toLowerCase().includes(term) ||
+        b.slug.toLowerCase().includes(term)
+      );
+
+      if (matched) {
+        alertBox.innerHTML = `
+          <div class="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 text-emerald-200 flex items-start gap-3">
+            <i class="fa-solid fa-circle-check text-emerald-400 text-xl mt-0.5"></i>
+            <div class="flex-1">
+              <h4 class="font-bold text-sm text-white">${matched.name} is a Guaranteed Genuine Brand</h4>
+              <p class="text-xs text-emerald-300/80 mt-1">Official Rank #${matched.rank} in ${matched.categoryName}. Direct verified website: <a href="${matched.website}" target="_blank" class="underline text-emerald-300">${matched.website}</a></p>
+              <button onclick="showDossier(${matched.id})" class="mt-2 text-xs font-bold underline">Read Full Audit Dossier</button>
+            </div>
+          </div>
+        `;
+      } else {
+        alertBox.innerHTML = `
+          <div class="p-4 rounded-2xl bg-red-950/30 border border-red-500/40 text-red-200 flex items-start gap-3">
+            <i class="fa-solid fa-triangle-exclamation text-red-400 text-xl mt-0.5"></i>
+            <div class="flex-1">
+              <h4 class="font-bold text-sm text-white">NOT IN GUARANTEED REGISTRY</h4>
+              <p class="text-xs text-red-300/80 mt-1">"${term}" has NOT passed AuthentiQ corporate authentication. Exercise extreme caution before purchasing.</p>
+              <div class="mt-3 flex gap-2">
+                <button onclick="openModal('reportModal')" class="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 border border-red-500/30">Report Fake/Clone</button>
+                <button onclick="openModal('auditModal')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300">Request Audit</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function showDossier(brandId) {
+      const b = allBrands.find(item => item.id === brandId);
+      if (!b) return;
+
+      const content = document.getElementById('dossierContent');
+      content.innerHTML = `
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 font-bold text-xs border border-amber-500/20">Rank #${b.rank}</span>
+          <span class="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 font-bold text-xs border border-emerald-500/20">100% Guaranteed</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-1">${b.name}</h2>
+        <p class="text-xs text-slate-400 mb-4">${b.categoryName} • Founded ${b.foundedYear || 'N/A'} • ${b.headquarters || 'Global'}</p>
+        <div class="space-y-2 text-xs bg-slate-950 p-4 rounded-xl border border-slate-800 mb-4">
+          <div><span class="text-slate-500">Corporate Reg / ID:</span> <span class="font-mono text-slate-200 ml-1">${b.regNumber}</span></div>
+          <div><span class="text-slate-500">Trademark Record:</span> <span class="font-mono text-slate-200 ml-1">${b.trademark}</span></div>
+          <div><span class="text-slate-500">Certifications:</span> <span class="text-slate-200 ml-1">${b.compliance}</span></div>
+          <div><span class="text-slate-500">Auditor Authority:</span> <span class="text-slate-200 ml-1">${b.auditor}</span></div>
+        </div>
+        <a href="${b.website}" target="_blank" class="block w-full text-center py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition">
+          Visit Authenticated Domain (${b.website})
+        </a>
+      `;
+      openModal('dossierModal');
+    }
+
+    async function handleAuditSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        brand_name: document.getElementById('auditBrandName').value,
+        official_website: document.getElementById('auditWebsite').value,
+        corporate_id: document.getElementById('auditCorporateId').value,
+        contact_email: document.getElementById('auditEmail').value,
+        status: 'Pending'
+      };
+
+      const { error } = await supabase.from('audit_submissions').insert([payload]);
+      if (error) {
+        alert("Submission failed: " + error.message);
+      } else {
+        alert("Audit Application submitted! It is recorded in your Supabase database.");
+        closeModal('auditModal');
+        e.target.reset();
+      }
+    }
+
+    async function handleScamReport(e) {
+      e.preventDefault();
+      const payload = {
+        reported_brand_or_url: document.getElementById('scamU
