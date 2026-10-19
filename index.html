@@ -240,10 +240,14 @@
     let isSignUpMode = false;
 
     async function initPlatform() {
-      await checkAuthSession();
-      await loadSectors();
-      await loadBrandsClean();
+  // Load brands first so the feed never freezes
+  loadBrandsClean();
+  
+  // Run background utilities independently
+  try { checkAuthSession(); } catch (e) { console.warn(e); }
+  try { loadSectors(); } catch (e) { console.warn(e); }
     }
+    
 
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
