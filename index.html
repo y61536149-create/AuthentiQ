@@ -35,6 +35,9 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
+        <a href="admin.html" class="text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">
+          <i class="fa-solid fa-lock mr-1 text-emerald-600"></i> Admin
+        </a>
         <button onclick="openModal('scamModal')" class="text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg transition">
           <i class="fa-solid fa-triangle-exclamation mr-1"></i> Report Scam
         </button>
@@ -50,7 +53,7 @@
   <!-- Main View -->
   <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
     
-    <!-- Top Stock-Style Overview Header -->
+    <!-- Header Overview -->
     <div class="pb-5 border-b border-gray-100 mb-6">
       <div class="flex items-baseline justify-between mb-1">
         <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">AuthentiQ Global Registry</h1>
@@ -59,17 +62,17 @@
         </span>
       </div>
       <p class="text-xs text-gray-500">
-        Direct legal corporate registration audits (CIN/GSTIN), trademarks, and verified storefront domains.
+        Direct legal corporate registration audits (CIN/GSTIN), active trademarks, and verified storefront domains.
       </p>
     </div>
 
-    <!-- Clean Search Bar -->
+    <!-- Search Bar -->
     <div class="mb-6">
       <form onsubmit="handleSearch(event)" class="relative flex items-center">
         <input 
           id="brandSearchInput" 
           type="text" 
-          placeholder="Search company or verified brand (e.g., Apple, Tata, Sony)..."
+          placeholder="Search company or verified brand (e.g., Apple, Minimalist, Sony)..."
           class="w-full bg-gray-50 border border-gray-200 focus:border-gray-900 focus:bg-white rounded-xl py-3 pl-11 pr-24 text-gray-900 placeholder-gray-400 text-sm focus:outline-none transition" 
           required 
         />
@@ -82,25 +85,25 @@
       </form>
     </div>
 
-    <!-- Sector Tabs (Clean Underline Style) -->
+    <!-- Sector Tabs -->
     <div class="mb-5 border-b border-gray-200">
       <div id="sectorTabs" class="flex space-x-6 overflow-x-auto scrollbar-none text-xs">
         <button onclick="filterBySector('all', this)" class="sector-tab tab-active pb-2.5 whitespace-nowrap transition">
-          Overview
+          All Sectors
         </button>
       </div>
     </div>
 
-    <!-- Brand Feed Header Counter -->
+    <!-- Brand Feed Counter -->
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Guaranteed Companies</h2>
       <span id="brandCount" class="text-xs text-gray-500 font-mono-code font-medium">Checking records...</span>
     </div>
 
-    <!-- Live Brand List (Clean Financial Cards) -->
+    <!-- Brand Container -->
     <div id="brandsContainer" class="space-y-3">
       <div class="text-center py-12 text-gray-400">
-        <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2 text-gray-600"></i>
+        <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2 text-emerald-600"></i>
         <p class="text-xs">Loading verified records...</p>
       </div>
     </div>
@@ -114,7 +117,7 @@
       </button>
       <div id="brandDetailContent"></div>
 
-      <!-- Community Review Feed -->
+      <!-- Community Reviews -->
       <div class="mt-6 pt-5 border-t border-gray-100">
         <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">
           <i class="fa-solid fa-comments text-emerald-600 mr-1.5"></i> Community Reviews
@@ -123,7 +126,6 @@
           <p class="text-gray-400 text-xs">Loading reviews...</p>
         </div>
 
-        <!-- Comment Input Section -->
         <div id="commentFormWrapper" class="bg-gray-50 p-3 rounded-xl border border-gray-200">
           <div id="authRequiredNotice" class="text-center py-2 hidden">
             <p class="text-xs text-gray-500 mb-2">Sign in with an email to review this brand.</p>
@@ -145,7 +147,7 @@
     </div>
   </div>
 
-  <!-- Caution Alert Modal (Unverified Query) -->
+  <!-- Caution Alert Modal -->
   <div id="scamWarningModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white w-full max-w-md rounded-2xl p-6 border border-rose-200 text-center relative shadow-2xl">
       <div class="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 text-xl mx-auto mb-3">
@@ -191,7 +193,7 @@
     </div>
   </div>
 
-  <!-- Sign-in Modal (Email OTP / Password) -->
+  <!-- Sign In Modal -->
   <div id="authModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white w-full max-w-sm rounded-2xl p-6 border border-gray-200 relative shadow-2xl">
       <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 p-1">
@@ -239,15 +241,12 @@
     let selectedBrandForModal = null;
     let isSignUpMode = false;
 
+    // Platform Bootstrap: Direct non-blocking brand call
     async function initPlatform() {
-  // Load brands first so the feed never freezes
-  loadBrandsClean();
-  
-  // Run background utilities independently
-  try { checkAuthSession(); } catch (e) { console.warn(e); }
-  try { loadSectors(); } catch (e) { console.warn(e); }
+      loadBrandsClean();
+      checkAuthSession().catch(e => console.warn("Auth warning:", e));
+      loadSectors().catch(e => console.warn("Sectors warning:", e));
     }
-    
 
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
@@ -318,26 +317,27 @@
       } catch (err) {}
     }
 
-        async function loadBrandsClean() {
+    async function loadBrandsClean() {
       const container = document.getElementById('brandsContainer');
       const counter = document.getElementById('brandCount');
-      
+
       try {
         const { data: brands, error: bError } = await db
           .from('brands')
-          .select('*');
+          .select('id, name, slug, official_website, founded_year, headquarters, is_guaranteed')
+          .order('id');
 
         if (bError) throw new Error("Brands table: " + bError.message);
 
         if (!brands || brands.length === 0) {
-          counter.innerText = "0 Verified Companies";
-          container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs">No brands found in database.</div>`;
+          if (counter) counter.innerText = "0 Verified Companies";
+          container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs">No guaranteed companies found in database.</div>`;
           return;
         }
 
         let rankMap = {};
         try {
-          const { data: rankings } = await db.from('brand_category_rankings').select('*');
+          const { data: rankings } = await db.from('brand_category_rankings').select('brand_id, rank_position, rank_rationale');
           (rankings || []).forEach(r => { rankMap[r.brand_id] = r; });
         } catch (e) {
           console.warn("Rankings fetch skipped:", e);
@@ -345,7 +345,7 @@
 
         let verifMap = {};
         try {
-          const { data: verifs } = await db.from('brand_verifications').select('*');
+          const { data: verifs } = await db.from('brand_verifications').select('brand_id, reg_number, trademark_reg_no, compliance_certifications');
           (verifs || []).forEach(v => { verifMap[v.brand_id] = v; });
         } catch (e) {
           console.warn("Verifications fetch skipped:", e);
@@ -363,18 +363,17 @@
         renderBrands(allBrands);
       } catch (err) {
         console.error("Critical Load Error:", err);
-        counter.innerText = "Error loading";
+        if (counter) counter.innerText = "Error loading";
         container.innerHTML = `
           <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center font-mono">
-            <strong>Database Error:</strong> ${err.message}<br>
-            <span class="text-[10px] text-gray-500 mt-1 block">Ensure RLS read policy is enabled in Supabase.</span>
+            <strong>Database Connection Error:</strong> ${err.message}<br>
+            <span class="text-[10px] text-gray-500 mt-1 block">Ensure Row Level Security is disabled or permissions are set in Supabase SQL editor.</span>
           </div>
         `;
       }
-          }
-    
+    }
 
-    function renderBrands(brands) {
+        function renderBrands(brands) {
       const container = document.getElementById('brandsContainer');
       document.getElementById('brandCount').innerText = `${brands.length} Verified Companies`;
       container.innerHTML = '';
@@ -397,4 +396,266 @@
             <div>
               <div class="flex items-center space-x-2">
                 <span class="font-bold text-gray-950 text-sm">${b.name}</span>
-                <span class="inline-flex items-center px
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  <i class="fa-solid fa-check mr-1 text-[8px]"></i> Audited
+                </span>
+              </div>
+              <div class="text-xs text-gray-400 font-mono-code mt-0.5 truncate max-w-[200px] sm:max-w-xs">
+                ${b.regNumber}
+              </div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-bold text-gray-900 font-mono-code">Rank #${b.rank}</div>
+            <div class="text-[11px] text-emerald-600 font-medium mt-0.5 flex items-center justify-end">
+              <span>View Audit</span> <i class="fa-solid fa-chevron-right ml-1 text-[9px]"></i>
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function filterBySector(sectorId, clickedBtn) {
+      document.querySelectorAll('.sector-tab').forEach(btn => {
+        btn.className = "sector-tab tab-inactive pb-2.5 whitespace-nowrap transition text-xs";
+      });
+      clickedBtn.className = "sector-tab tab-active pb-2.5 whitespace-nowrap transition text-xs";
+      renderBrands(allBrands);
+    }
+
+    function handleSearch(e) {
+      e.preventDefault();
+      const term = document.getElementById('brandSearchInput').value.trim().toLowerCase();
+      if (!term) return;
+
+      const found = allBrands.find(b => b.name.toLowerCase().includes(term) || b.official_website.toLowerCase().includes(term));
+      if (found) {
+        openBrandDetail(found);
+      } else {
+        document.getElementById('unverifiedQueryText').innerText = `"${term}" has no verified corporate registration records on file.`;
+        openModal('scamWarningModal');
+      }
+    }
+
+    async function openBrandDetail(b) {
+      selectedBrandForModal = b;
+
+      const html = `
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-gray-950 flex items-center">
+              ${b.name} <i class="fa-solid fa-circle-check text-emerald-600 text-sm ml-2"></i>
+            </h2>
+            <p class="text-xs text-emerald-700 font-semibold mt-0.5">Rank #${b.rank} Guaranteed Entity</p>
+          </div>
+          <span class="text-xs font-mono-code text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-md">
+            ${b.founded_year ? 'Est. ' + b.founded_year : 'Active'}
+          </span>
+        </div>
+
+        <div class="space-y-3 text-xs mb-5">
+          <div class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">About Company</div>
+          <div class="flex justify-between py-1.5 border-b border-gray-50">
+            <span class="text-gray-500">Legal Registration</span>
+            <span class="font-mono-code text-gray-900 font-semibold">${b.regNumber}</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-gray-50">
+            <span class="text-gray-500">Trademark Status</span>
+            <span class="font-mono-code text-emerald-700 font-semibold">${b.trademark}</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-gray-50">
+            <span class="text-gray-500">Headquarters</span>
+            <span class="text-gray-900 font-medium">${b.headquarters || 'Verified Office'}</span>
+          </div>
+          <div class="flex justify-between py-1.5">
+            <span class="text-gray-500">Audit Status</span>
+            <span class="text-emerald-700 font-bold">${b.compliance}</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100 mb-4">
+          "${b.rationale}"
+        </p>
+
+        <a href="${b.official_website}" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-center block text-xs transition mb-2">
+          Visit Verified Official Domain <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[10px]"></i>
+        </a>
+      `;
+
+      document.getElementById('brandDetailContent').innerHTML = html;
+      updateCommentFormState();
+      await loadBrandComments(b.id);
+      openModal('brandDetailModal');
+    }
+
+    function updateCommentFormState() {
+      const authNotice = document.getElementById('authRequiredNotice');
+      const commentForm = document.getElementById('commentPostForm');
+      if (currentUser) {
+        authNotice.classList.add('hidden');
+        commentForm.classList.remove('hidden');
+        document.getElementById('commentUserBadge').innerText = `Posting as @${currentProfile?.username || 'user'}`;
+      } else {
+        authNotice.classList.remove('hidden');
+        commentForm.classList.add('hidden');
+      }
+    }
+
+    async function loadBrandComments(brandId) {
+      const container = document.getElementById('commentList');
+      container.innerHTML = '<p class="text-gray-400 text-xs">Loading reviews...</p>';
+
+      const { data, error } = await db
+        .from('brand_comments')
+        .select('*')
+        .eq('brand_id', brandId)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-xs">No reviews yet. Share your experience with this brand.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      data.forEach(c => {
+        const item = document.createElement('div');
+        item.className = "bg-gray-50 p-2.5 rounded-lg border border-gray-100";
+        item.innerHTML = `
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-emerald-700 font-bold font-mono-code text-[11px]">@${c.username}</span>
+            <span class="text-[10px] text-gray-400 font-mono-code">${new Date(c.created_at).toLocaleDateString()}</span>
+          </div>
+          <p class="text-gray-700 text-xs">${c.comment_text}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function handlePostComment(e) {
+      e.preventDefault();
+      if (!currentUser || !selectedBrandForModal) return;
+
+      const btn = document.getElementById('commentSubmitBtn');
+      const textInput = document.getElementById('commentTextInput');
+      const text = textInput.value.trim();
+      if (!text) return;
+
+      btn.disabled = true;
+
+      const { error } = await db.from('brand_comments').insert([{
+        brand_id: selectedBrandForModal.id,
+        user_id: currentUser.id,
+        username: currentProfile?.username || currentUser.email.split('@')[0],
+        comment_text: text
+      }]);
+
+      btn.disabled = false;
+
+      if (error) {
+        showToast("Error posting review: " + error.message, true);
+      } else {
+        showToast("Review submitted!");
+        textInput.value = '';
+        await loadBrandComments(selectedBrandForModal.id);
+      }
+    }
+
+    function toggleSignUpMode(e) {
+      e.preventDefault();
+      isSignUpMode = !isSignUpMode;
+      const usernameBox = document.getElementById('usernameField');
+      const submitBtn = document.getElementById('pwdSubmitBtn');
+      const toggleText = document.getElementById('authToggleText');
+      const toggleLink = document.getElementById('authToggleLink');
+
+      if (isSignUpMode) {
+        usernameBox.classList.remove('hidden');
+        submitBtn.innerText = "Create Account";
+        toggleText.innerText = "Already registered?";
+        toggleLink.innerText = "Sign in";
+      } else {
+        usernameBox.classList.add('hidden');
+        submitBtn.innerText = "Sign In";
+        toggleText.innerText = "New user?";
+        toggleLink.innerText = "Create Account";
+      }
+    }
+
+    async function handlePasswordAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('pwdAuthEmail').value.trim();
+      const password = document.getElementById('pwdAuthPassword').value.trim();
+      const username = document.getElementById('pwdAuthUsername').value.trim();
+      const btn = document.getElementById('pwdSubmitBtn');
+      btn.disabled = true;
+
+      try {
+        if (isSignUpMode) {
+          if (!username) throw new Error("Please pick a username.");
+          const { data, error } = await db.auth.signUp({ email, password });
+          if (error) throw error;
+          if (data.user) {
+            await db.from('profiles').insert([{ id: data.user.id, username: username.toLowerCase().replace(/[^a-z0-9_]/g, '') }]);
+            showToast("Account created!");
+          }
+        } else {
+          const { error } = await db.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          showToast("Signed in successfully.");
+        }
+        await checkAuthSession();
+        closeModal('authModal');
+        updateCommentFormState();
+      } catch (err) {
+        showToast(err.message, true);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function submitScamReport(e) {
+      e.preventDefault();
+      const btn = document.getElementById('scamSubmitBtn');
+      btn.disabled = true;
+
+      const entity = document.getElementById('scamBrandName').value.trim();
+      const url = document.getElementById('scamBrandUrl').value.trim();
+      const details = document.getElementById('scamDescription').value.trim();
+
+      const { error } = await db.from('scam_reports').insert([{
+        reported_brand_or_url: `${entity} (${url})`,
+        incident_details: details,
+        reporter_email: currentUser?.email || 'Public Citizen'
+      }]);
+
+      btn.disabled = false;
+      if (error) {
+        showToast("Failed to submit: " + error.message, true);
+      } else {
+        showToast("Scam report logged.");
+        closeModal('scamModal');
+        e.target.reset();
+      }
+    }
+
+    function triggerScamReportFromWarning() {
+      const query = document.getElementById('brandSearchInput').value.trim();
+      closeModal('scamWarningModal');
+      document.getElementById('scamBrandName').value = query;
+      openModal('scamModal');
+    }
+
+    function resetView() {
+      document.getElementById('brandSearchInput').value = '';
+      filterBySector('all', document.querySelector('.sector-tab'));
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function openAuthModal() { openModal('authModal'); }
+
+    window.onload = initPlatform;
+  </script>
+</body>
+</html>
