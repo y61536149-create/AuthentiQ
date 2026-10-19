@@ -314,29 +314,42 @@
       } catch (err) {}
     }
 
-    async function loadBrandsClean() {
+        async function loadBrandsClean() {
+      const container = document.getElementById('brandsContainer');
+      const counter = document.getElementById('brandCount');
+      
       try {
-        // Direct, robust query that avoids join errors
         const { data: brands, error: bError } = await db
           .from('brands')
-          .select('id, name, slug, official_website, founded_year, headquarters, is_guaranteed')
-          .order('id');
+          .select('*');
 
-        if (bError) throw bError;
+        if (bError) throw new Error("Brands table: " + bError.message);
 
-        // Fetch rankings and verifications safely
-        const { data: rankings } = await db.from('brand_category_rankings').select('brand_id, rank_position, rank_rationale');
-        const { data: verifs } = await db.from('brand_verifications').select('brand_id, reg_number, trademark_reg_no, compliance_certifications');
+        if (!brands || brands.length === 0) {
+          counter.innerText = "0 Verified Companies";
+          container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs">No brands found in database.</div>`;
+          return;
+        }
 
-        const rankMap = {};
-        (rankings || []).forEach(r => rankMap[r.brand_id] = r);
+        let rankMap = {};
+        try {
+          const { data: rankings } = await db.from('brand_category_rankings').select('*');
+          (rankings || []).forEach(r => { rankMap[r.brand_id] = r; });
+        } catch (e) {
+          console.warn("Rankings fetch skipped:", e);
+        }
 
-        const verifMap = {};
-        (verifs || []).forEach(v => verifMap[v.brand_id] = v);
+        let verifMap = {};
+        try {
+          const { data: verifs } = await db.from('brand_verifications').select('*');
+          (verifs || []).forEach(v => { verifMap[v.brand_id] = v; });
+        } catch (e) {
+          console.warn("Verifications fetch skipped:", e);
+        }
 
-        allBrands = (brands || []).map(b => ({
+        allBrands = brands.map((b, idx) => ({
           ...b,
-          rank: rankMap[b.id]?.rank_position || 1,
+          rank: rankMap[b.id]?.rank_position || (idx + 1),
           rationale: rankMap[b.id]?.rank_rationale || 'Audited authentic company.',
           regNumber: verifMap[b.id]?.reg_number || 'CIN/GST Verified',
           trademark: verifMap[b.id]?.trademark_reg_no || 'Registered Active',
@@ -345,14 +358,17 @@
 
         renderBrands(allBrands);
       } catch (err) {
-        console.error("Load brands error:", err);
-        document.getElementById('brandsContainer').innerHTML = `
-          <div class="text-center py-8 text-rose-600 text-xs font-medium">
-            Database connection error: ${err.message}
+        console.error("Critical Load Error:", err);
+        counter.innerText = "Error loading";
+        container.innerHTML = `
+          <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center font-mono">
+            <strong>Database Error:</strong> ${err.message}<br>
+            <span class="text-[10px] text-gray-500 mt-1 block">Ensure RLS read policy is enabled in Supabase.</span>
           </div>
         `;
       }
-    }
+          }
+    
 
     function renderBrands(brands) {
       const container = document.getElementById('brandsContainer');
