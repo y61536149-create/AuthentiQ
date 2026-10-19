@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuthentiQ - Founder Vault Control Room</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #06090f; color: #f8fafc; }
+    h1, h2, h3, .font-heading { font-family: 'Space Grotesk', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    .glass-card { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .active-tab { background-color: #10b981 !important; color: #022c22 !important; font-weight: 700 !important; }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 max-w-5xl mx-auto flex flex-col justify-between antialiased">
+
+  <div id="adminToast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl flex items-center space-x-2"></div>
+
+  <!-- Master Passcode Security Gate -->
+  <div id="authLockModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="glass-card max-w-sm w-full p-6 rounded-2xl border border-gray-800 text-center">
+      <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto mb-4 text-xl">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h2 class="text-lg font-extrabold text-white mb-1 font-heading">Founder Security Gate</h2>
+      <p class="text-xs text-gray-400 mb-4">Enter master passcode to unlock registry ingestion controls.</p>
+      <form onsubmit="verifyFounderPass(event)" class="space-y-3">
+        <input id="founderPassInput" type="password" placeholder="Passcode (authentiq2026)" class="w-full bg-[#0d1322] border border-gray-700 rounded-xl px-3 py-2.5 text-xs text-white text-center focus:border-emerald-500 outline-none font-mono-code" required />
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs transition font-heading">Unlock Workspace</button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <!-- Cockpit Header -->
+    <header class="flex items-center justify-between pb-6 border-b border-gray-800 mb-6">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-xl">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold text-white font-heading">Founder Vault Cockpit</h1>
+          <p class="text-xs text-gray-400 font-mono-code">Exclusive Company Audit & Sequential Rank Registry</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="loadAdminData()" class="text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700 transition font-mono-code">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- Telemetry Badges -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="glass-card p-4 rounded-xl cursor-pointer" onclick="switchTab('direct')">
+        <span class="text-xs text-gray-400 block mb-1 font-heading">Guaranteed Brands</span>
+        <span id="metricBrands" class="text-2xl font-extrabold text-emerald-400 font-heading">...</span>
+      </div>
+      <div class="glass-card p-4 rounded-xl">
+        <span class="text-xs text-gray-400 block mb-1 font-heading">Universal Categories</span>
+        <span id="metricCategories" class="text-2xl font-extrabold text-white font-heading">...</span>
+      </div>
+      <div class="glass-card p-4 rounded-xl cursor-pointer" onclick="switchTab('scams')">
+        <span class="text-xs text-gray-400 block mb-1 font-heading">Scam Incident Alerts</span>
+        <span id="metricScams" class="text-2xl font-extrabold text-rose-400 font-heading">...</span>
+      </div>
+    </div>
+
+    <!-- Tabs Switchboard -->
+    <div class="flex space-x-2 border-b border-gray-800 pb-3 mb-6 font-heading text-xs">
+      <button id="tabBtnDirect" onclick="switchTab('direct')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-800 text-gray-300 transition active-tab">
+        <i class="fa-solid fa-plus-circle mr-1"></i> Add Genuine Brand & Rank
+      </button>
+      <button id="tabBtnScams" onclick="switchTab('scams')" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 text-gray-400 transition hover:text-white">
+        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Scam Incident Reports
+      </button>
+    </div>
+
+    <!-- Tab 1: Direct Ingest Form -->
+    <div id="viewDirect">
+      <div class="glass-card p-6 rounded-2xl border border-gray-800 max-w-xl mx-auto">
+        <h2 class="text-sm font-bold text-white mb-3 flex items-center font-heading">
+          <i class="fa-solid fa-shield text-emerald-400 mr-2"></i>Direct Brand Ingestion & Rank Engine
+        </h2>
+        <form onsubmit="insertBrandDirect(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block text-gray-400 mb-1 font-semibold">Brand Legal Name</label>
+            <input id="newBrandName" type="text" placeholder="e.g. Dyson" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-white" required />
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-1 font-semibold">Official Website Domain</label>
+            <input id="newBrandUrl" type="url" placeholder="https://dyson.com" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-white" required />
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-1 font-semibold">Category Assignment</label>
+            <select id="newBrandCategory" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-white font-mono-code" required></select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-gray-400 mb-1 font-semibold">Sequential Rank Position</label>
+              <input id="newBrandRank" type="number" min="1" placeholder="1, 2, 3..." class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-white font-mono-code" required />
+            </div>
+            <div>
+              <label class="block text-gray-400 mb-1 font-semibold">Founded Year</label>
+              <input id="newBrandYear" type="number" placeholder="1991" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-white font-mono-code" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-1 font-semibold">Corporate Registration ID (CIN / GSTIN / Tax ID)</label>
+            <input id="newBrandReg" type="text" placeholder="U74999DL2021PTC..." class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-white font-mono-code" required />
+          </div>
+          <button type="submit" id="directInsertBtn" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs transition font-heading mt-2">
+            Publish Guaranteed Brand to Registry
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tab 2: Scam Incident Feed -->
+    <div id="viewScams" class="hidden">
+      <div class="glass-card p-5 rounded-2xl border border-gray-800">
+        <h2 class="text-sm font-bold text-white mb-4 flex items-center font-heading">
+          <i class="fa-solid fa-triangle-exclamation text-rose-400 mr-2"></i>Reported Fraud & Counterfeit Alerts
+        </h2>
+        <div id="scamList" class="space-y-2 text-xs">
+          <p class="text-gray-500 font-mono-code">Checking scam database...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="border-t border-gray-800/80 py-6 text-center text-xs text-gray-500 mt-10 font-mono-code">
+    <p>AuthentiQ Private Founder Cockpit • Supabase PostgreSQL</p>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://yadcxfczozsydrexquev.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_S-81oDv-dMWj8j0HsjrAoA_p_-c7TzJ";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('adminToast');
+      toast.className = `fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl flex items-center space-x-2 transition-all duration-300 ${
+        isError ? 'bg-rose-950 border border-rose-800 text-rose-300' : 'bg-emerald-950 border border-emerald-800 text-emerald-300'
+      }`;
+      toast.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> <span>${msg}</span>`;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500);
+    }
+
+    function verifyFounderPass(e) {
+      e.preventDefault();
+      const code = document.getElementById('founderPassInput').value.trim();
+      if (code === 'authentiq2026') {
+        document.getElementById('authLockModal').classList.add('hidden');
+        showToast("Authenticated as founder.");
+        loadAdminData();
+      } else {
+        showToast("Access Denied: Invalid Passcode", true);
+      }
+    }
+
+    function switchTab(tab) {
+      document.getElementById('viewDirect').classList.add('hidden');
+      document.getElementById('viewScams').classList.add('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 text-gray-400 transition hover:text-white font-heading";
+      });
+
+      if (tab === 'direct') {
+        document.getElementById('viewDirect').classList.remove('hidden');
+        document.getElementById('tabBtnDirect').className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-800 text-gray-300 transition active-tab font-heading";
+      } else if (tab === 'scams') {
+        document.getElementById('viewScams').classList.remove('hidden');
+        document.getElementById('tabBtnScams').className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-800 text-gray-300 transition active-tab font-heading";
+      }
+    }
+
+    async function loadAdminData() {
+      const { count: bCount } = await db.from('brands').select('*', { count: 'exact', head: true });
+      const { count: cCount } = await db.from('categories').select('*', { count: 'exact', head: true });
+      const { count: scCount } = await db.from('scam_reports').select('*', { count: 'exact', head: true });
+
+      document.getElementById('metricBrands').innerText = bCount || 0;
+      document.getElementById('metricCategories').innerText = cCount || 0;
+      document.getElementById('metricScams').innerText = scCount || 0;
+
+      const { data: cats } = await db.from('categories').select('id, name').order('name');
+      const catSelect = document.getElementById('newBrandCategory');
+      catSelect.innerHTML = '';
+      (cats || []).forEach(c => {
+        catSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+      });
+
+      const { data: scams } = await db.from('scam_reports').select('*').order('reported_at', { ascending: false });
+      const scamBox = document.getElementById('scamList');
+      scamBox.innerHTML = scams?.length ? '' : '<p class="text-gray-500 font-mono-code">No scam alerts filed.</p>';
+      (scams || []).forEach(s => {
+        scamBox.innerHTML += `
+          <div class="bg-[#0d1322] p-3 rounded-xl border border-rose-900/30">
+            <div class="font-bold text-rose-400 font-heading text-xs">${s.reported_brand_or_url}</div>
+            <div class="text-gray-300 mt-1">${s.incident_details}</div>
+            <div class="text-gray-500 font-mono-code mt-1 text-[10px]">Reporter: ${s.reporter_email || 'Anonymous'}</div>
+          </div>
+        `;
+      });
+    }
+
+    async function insertBrandDirect(e) {
+      e.preventDefault();
+      const btn = document.getElementById('directInsertBtn');
+      btn.disabled = true;
+      btn.innerText = "Publishing to Registry...";
+
+      const name = document.getElementById('newBrandName').value.trim();
+      const url = document.getElementById('newBrandUrl').value.trim();
+      const catId = parseInt(document.getElementById('newBrandCategory').value);
+      const rank = parseInt(document.getElementById('newBrandRank').value);
+      const year = parseInt(document.getElementById('newBrandYear').value) || null;
+      const reg = document.getElementById('newBrandReg').value.trim();
+      const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+      try {
+        const { data: bData, error: bErr } = await db.from('brands').insert([{
+          name, slug, official_website: url, founded_year: year, is_guaranteed: true
+        }]).select();
+
+        if (bErr) throw bErr;
+        const brandId = bData[0].id;
+
+        await db.from('brand_verifications').insert([{
+          brand_id: brandId,
+          reg_number: reg,
+          audit_status: 'Approved',
+          verified_by_auditor: 'Founder Audit Office'
+        }]);
+
+        await db.from('brand_category_rankings').insert([{
+          brand_id: brandId,
+          category_id: catId,
+          rank_position: rank,
+          rank_rationale: 'Founder audited and certified.'
+        }]);
+
+        showToast(`Success! ${name} is ranked #${rank}.`);
+        e.target.reset();
+        loadAdminData();
+      } catch (err) {
+        showToast("Insert failed: " + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Publish Guaranteed Brand to Registry";
+      }
+    }
+  </script>
+</body>
+  </html>
+  
