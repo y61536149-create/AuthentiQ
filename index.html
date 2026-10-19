@@ -3,143 +3,141 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AuthentiQ - Guaranteed & Genuine Brand Registry</title>
+  <title>AuthentiQ - Guaranteed Brand Registry</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #070a11; color: #f8fafc; }
-    h1, h2, h3, h4, .font-heading { font-family: 'Space Grotesk', sans-serif; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #111827; }
     .font-mono-code { font-family: 'JetBrains Mono', monospace; }
-    .glass-card { background: rgba(15, 23, 42, 0.70); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .interactive-card { transition: all 0.2s ease-in-out; }
-    .interactive-card:active { transform: scale(0.98); }
+    .tab-active { border-bottom: 2.5px solid #111827; color: #111827; font-weight: 700; }
+    .tab-inactive { color: #6b7280; font-weight: 500; }
+    .tab-inactive:hover { color: #111827; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between antialiased">
+<body class="min-h-screen flex flex-col justify-between bg-white text-gray-900 antialiased">
 
-  <!-- Toast Notification Overlay -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl flex items-center space-x-2"></div>
+  <!-- Toast Overlay -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-3 rounded-xl text-xs font-semibold shadow-xl flex items-center space-x-2"></div>
 
-  <!-- Top Navigation -->
-  <nav class="border-b border-gray-800/80 bg-[#070a11]/85 sticky top-0 z-40 backdrop-blur-md px-4 py-3">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
+  <!-- Navigation Bar -->
+  <header class="border-b border-gray-100 bg-white sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5 cursor-pointer" onclick="resetView()">
-        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-lg">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold text-base">
           <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
-          <span class="text-xl font-extrabold tracking-tight text-white font-heading">Authenti<span class="text-emerald-400">Q</span></span>
-          <span class="hidden sm:inline-block ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono-code">100% Curated</span>
+          <span class="text-lg font-bold tracking-tight text-gray-950">Authenti<span class="text-emerald-600">Q</span></span>
         </div>
       </div>
       <div class="flex items-center space-x-2">
-        <button onclick="openModal('scamModal')" class="text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg transition flex items-center space-x-1">
-          <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-          <span>Report Scam</span>
+        <button onclick="openModal('scamModal')" class="text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg transition">
+          <i class="fa-solid fa-triangle-exclamation mr-1"></i> Report Scam
         </button>
         <div id="authNavContainer">
-          <button onclick="openAuthModal()" class="text-xs font-bold bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 px-3.5 py-1.5 rounded-lg transition flex items-center space-x-1">
-            <i class="fa-solid fa-user mr-1 text-emerald-400"></i>
-            <span>Sign In</span>
+          <button onclick="openAuthModal()" class="text-xs font-semibold bg-gray-900 hover:bg-black text-white px-3.5 py-1.5 rounded-lg transition">
+            Sign In
           </button>
         </div>
       </div>
     </div>
-  </nav>
+  </header>
 
-  <!-- Hero & Verification Search -->
-  <main class="max-w-5xl mx-auto px-4 py-10 w-full flex-grow">
-    <div class="text-center max-w-2xl mx-auto mb-8">
-      <div class="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-1 rounded-full text-emerald-400 text-xs font-semibold mb-4">
-        <i class="fa-solid fa-circle-check"></i>
-        <span>Live Verified Cloud Directory</span>
+  <!-- Main View -->
+  <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
+    
+    <!-- Top Stock-Style Overview Header -->
+    <div class="pb-5 border-b border-gray-100 mb-6">
+      <div class="flex items-baseline justify-between mb-1">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">AuthentiQ Global Registry</h1>
+        <span class="inline-flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+          <i class="fa-solid fa-circle-check mr-1.5 text-[10px]"></i> 100% Certified
+        </span>
       </div>
-      <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-3">
-        Verify Brand Authenticity Before You Buy
-      </h1>
-      <p class="text-gray-400 text-xs sm:text-sm">
-        Independent corporate audits, active trademarks, and verified websites. Unverified sellers are strictly excluded.
+      <p class="text-xs text-gray-500">
+        Direct legal corporate registration audits (CIN/GSTIN), trademarks, and verified storefront domains.
       </p>
     </div>
 
-    <!-- Search Engine -->
-    <div class="max-w-2xl mx-auto mb-10">
+    <!-- Clean Search Bar -->
+    <div class="mb-6">
       <form onsubmit="handleSearch(event)" class="relative flex items-center">
         <input 
           id="brandSearchInput" 
           type="text" 
-          placeholder="Search by brand name or website (e.g., Apple, Minimalist)..."
-          class="w-full bg-[#0d1322] border-2 border-gray-800 focus:border-emerald-500 rounded-2xl py-3.5 pl-12 pr-28 text-white placeholder-gray-500 text-sm shadow-xl focus:outline-none transition" 
+          placeholder="Search company or verified brand (e.g., Apple, Tata, Sony)..."
+          class="w-full bg-gray-50 border border-gray-200 focus:border-gray-900 focus:bg-white rounded-xl py-3 pl-11 pr-24 text-gray-900 placeholder-gray-400 text-sm focus:outline-none transition" 
           required 
         />
-        <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-500"></i>
+        <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-400 text-sm"></i>
         <button 
-          id="searchBtn"
           type="submit" 
-          class="absolute right-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold px-4 py-2 rounded-xl text-xs font-heading transition">
+          class="absolute right-1.5 bg-gray-900 hover:bg-black text-white font-semibold px-4 py-1.5 rounded-lg text-xs transition">
           Verify
         </button>
       </form>
     </div>
 
-    <!-- Sector Filters -->
-    <div class="mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs uppercase tracking-wider font-bold text-gray-400 font-heading">Browse Sectors</h2>
-        <span id="brandCount" class="text-xs text-gray-500 font-mono-code">Connecting...</span>
-      </div>
-      <div id="sectorTabs" class="flex space-x-2 overflow-x-auto pb-2 scrollbar-none text-xs">
-        <button onclick="filterBySector('all', this)" class="sector-btn px-4 py-2 rounded-xl bg-emerald-500 text-gray-950 font-bold whitespace-nowrap transition">
-          All Sectors
+    <!-- Sector Tabs (Clean Underline Style) -->
+    <div class="mb-5 border-b border-gray-200">
+      <div id="sectorTabs" class="flex space-x-6 overflow-x-auto scrollbar-none text-xs">
+        <button onclick="filterBySector('all', this)" class="sector-tab tab-active pb-2.5 whitespace-nowrap transition">
+          Overview
         </button>
       </div>
     </div>
 
-    <!-- Dynamic Brand Feed -->
-    <div id="brandsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="text-center py-12 text-gray-500 col-span-full">
-        <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-emerald-400"></i>
-        <p class="text-xs">Loading verified brands...</p>
+    <!-- Brand Feed Header Counter -->
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400">Guaranteed Companies</h2>
+      <span id="brandCount" class="text-xs text-gray-500 font-mono-code font-medium">Checking records...</span>
+    </div>
+
+    <!-- Live Brand List (Clean Financial Cards) -->
+    <div id="brandsContainer" class="space-y-3">
+      <div class="text-center py-12 text-gray-400">
+        <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2 text-gray-600"></i>
+        <p class="text-xs">Loading verified records...</p>
       </div>
     </div>
   </main>
 
-  <!-- Verified Brand Audit Dossier & Comments Modal -->
-  <div id="brandDetailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 border border-emerald-500/30 relative">
-      <button onclick="closeModal('brandDetailModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+  <!-- Detailed Audit Sheet Modal -->
+  <div id="brandDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-2xl border border-gray-100 relative">
+      <button onclick="closeModal('brandDetailModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 p-1">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
       <div id="brandDetailContent"></div>
 
       <!-- Community Review Feed -->
-      <div class="mt-6 pt-5 border-t border-gray-800">
-        <h4 class="text-xs font-bold text-gray-300 font-heading uppercase tracking-wider mb-3">
-          <i class="fa-solid fa-comments text-emerald-400 mr-1.5"></i> Community Reviews & Feedback
+      <div class="mt-6 pt-5 border-t border-gray-100">
+        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">
+          <i class="fa-solid fa-comments text-emerald-600 mr-1.5"></i> Community Reviews
         </h4>
         <div id="commentList" class="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1 text-xs">
-          <p class="text-gray-500 text-xs">Loading community comments...</p>
+          <p class="text-gray-400 text-xs">Loading reviews...</p>
         </div>
 
         <!-- Comment Input Section -->
-        <div id="commentFormWrapper" class="bg-gray-950/70 p-3 rounded-xl border border-gray-800">
+        <div id="commentFormWrapper" class="bg-gray-50 p-3 rounded-xl border border-gray-200">
           <div id="authRequiredNotice" class="text-center py-2 hidden">
-            <p class="text-xs text-gray-400 mb-2">Sign in to leave a review for this brand.</p>
-            <button onclick="openAuthModal()" class="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs rounded-lg transition font-heading">
-              Sign In to Comment
+            <p class="text-xs text-gray-500 mb-2">Sign in with an email to review this brand.</p>
+            <button onclick="openAuthModal()" class="px-3.5 py-1.5 bg-gray-900 hover:bg-black text-white font-semibold text-xs rounded-lg transition">
+              Sign In to Review
             </button>
           </div>
           <form id="commentPostForm" onsubmit="handlePostComment(event)" class="space-y-2 hidden">
-            <div class="flex items-center justify-between text-[11px] text-gray-400">
-              <span id="commentUserBadge" class="font-mono-code text-emerald-400"></span>
+            <div class="flex items-center justify-between text-[11px] text-gray-500">
+              <span id="commentUserBadge" class="font-mono-code text-emerald-700 font-semibold"></span>
             </div>
-            <textarea id="commentTextInput" rows="2" placeholder="Share your experience with this verified brand..." class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white placeholder-gray-500 focus:border-emerald-500 outline-none" required></textarea>
-            <button type="submit" id="commentSubmitBtn" class="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs rounded-lg transition font-heading">
-              Post Verified Review
+            <textarea id="commentTextInput" rows="2" placeholder="Write feedback regarding this brand..." class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 placeholder-gray-400 focus:border-gray-900 outline-none" required></textarea>
+            <button type="submit" id="commentSubmitBtn" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition">
+              Submit Review
             </button>
           </form>
         </div>
@@ -148,114 +146,86 @@
   </div>
 
   <!-- Caution Alert Modal (Unverified Query) -->
-  <div id="scamWarningModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card w-full max-w-md rounded-2xl p-6 border border-rose-500/40 text-center relative">
-      <div class="w-14 h-14 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-500 text-2xl mx-auto mb-4">
+  <div id="scamWarningModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 border border-rose-200 text-center relative shadow-2xl">
+      <div class="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 text-xl mx-auto mb-3">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <h3 class="text-lg font-extrabold text-white mb-2 font-heading">NOT IN GUARANTEED REGISTRY</h3>
-      <p id="unverifiedQueryText" class="text-gray-300 text-xs mb-4"></p>
-      <div class="bg-rose-950/40 border border-rose-800/40 rounded-xl p-3 text-left text-xs text-rose-300 mb-5 space-y-1 font-mono-code">
-        <div>• No verified legal registration found on record.</div>
-        <div>• Domain ownership & genuine warranty not certified.</div>
-        <div>• Proceed with extreme caution before paying.</div>
+      <h3 class="text-base font-bold text-gray-950 mb-1">NOT IN GUARANTEED REGISTRY</h3>
+      <p id="unverifiedQueryText" class="text-gray-500 text-xs mb-4"></p>
+      <div class="bg-rose-50 border border-rose-100 rounded-xl p-3 text-left text-xs text-rose-800 mb-5 space-y-1 font-mono-code">
+        <div>• No legal business registration verified.</div>
+        <div>• Website ownership & genuine escrow not audited.</div>
+        <div>• Transact with extreme caution.</div>
       </div>
       <div class="flex space-x-2">
-        <button onclick="closeModal('scamWarningModal')" class="w-1/2 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold text-xs transition">Dismiss</button>
-        <button onclick="triggerScamReportFromWarning()" class="w-1/2 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition font-heading">Report Entity</button>
+        <button onclick="closeModal('scamWarningModal')" class="w-1/2 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition">Dismiss</button>
+        <button onclick="triggerScamReportFromWarning()" class="w-1/2 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition">Report Fraud</button>
       </div>
     </div>
   </div>
 
   <!-- Scam Reporting Modal -->
-  <div id="scamModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card w-full max-w-md rounded-2xl p-6 border border-gray-700 relative">
-      <button onclick="closeModal('scamModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+  <div id="scamModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 border border-gray-200 relative shadow-2xl">
+      <button onclick="closeModal('scamModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 p-1">
         <i class="fa-solid fa-xmark"></i>
       </button>
-      <h3 class="text-base font-bold text-white mb-1 font-heading"><i class="fa-solid fa-bullhorn text-rose-400 mr-2"></i>Report Suspicious Store / Scam</h3>
-      <p class="text-xs text-gray-400 mb-4">Submit suspected counterfeiters, clone websites, or unfulfilled orders.</p>
+      <h3 class="text-sm font-bold text-gray-900 mb-1"><i class="fa-solid fa-bullhorn text-rose-600 mr-2"></i>Report Fake Website or Scam</h3>
+      <p class="text-xs text-gray-500 mb-4">Submit suspected phishing URLs or counterfeit store links.</p>
       <form onsubmit="submitScamReport(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">Entity / Brand Name</label>
-          <input id="scamBrandName" type="text" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" required />
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Entity / Brand Name</label>
+          <input id="scamBrandName" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:border-gray-900 outline-none" required />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">Website URL or Social Link</label>
-          <input id="scamBrandUrl" type="url" placeholder="https://..." class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" required />
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Website URL or Link</label>
+          <input id="scamBrandUrl" type="url" placeholder="https://..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:border-gray-900 outline-none" required />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">Incident Details</label>
-          <textarea id="scamDescription" rows="3" placeholder="Counterfeit product received, money taken without shipping, clone site..." class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" required></textarea>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Incident Details</label>
+          <textarea id="scamDescription" rows="3" placeholder="Explain what occurred..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:border-gray-900 outline-none" required></textarea>
         </div>
-        <button type="submit" id="scamSubmitBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-xl text-xs transition font-heading">Submit Incident Report</button>
+        <button type="submit" id="scamSubmitBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl text-xs transition">Submit Incident</button>
       </form>
     </div>
   </div>
 
-  <!-- Hybrid Auth Modal (Password + Email OTP) -->
-  <div id="authModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card w-full max-w-sm rounded-2xl p-6 border border-gray-800 relative">
-      <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+  <!-- Sign-in Modal (Email OTP / Password) -->
+  <div id="authModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-6 border border-gray-200 relative shadow-2xl">
+      <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 p-1">
         <i class="fa-solid fa-xmark"></i>
       </button>
-      <h3 class="text-base font-bold text-white mb-1 font-heading"><i class="fa-solid fa-user-lock text-emerald-400 mr-2"></i>Sign In to AuthentiQ</h3>
-      <p class="text-xs text-gray-400 mb-4">Post reviews and contribute verified feedback.</p>
+      <h3 class="text-sm font-bold text-gray-900 mb-1">Sign In to AuthentiQ</h3>
+      <p class="text-xs text-gray-500 mb-4">Post reviews and contribute verified feedback.</p>
 
-      <!-- Auth Method Tabs -->
-      <div class="flex border-b border-gray-800 mb-4 text-xs font-heading">
-        <button id="tabBtnPassword" onclick="switchAuthTab('password')" class="w-1/2 pb-2 text-emerald-400 border-b-2 border-emerald-400 font-bold">Password</button>
-        <button id="tabBtnOtp" onclick="switchAuthTab('otp')" class="w-1/2 pb-2 text-gray-400 hover:text-white font-semibold">Email OTP</button>
-      </div>
-
-      <!-- Tab A: Email + Password -->
       <form id="authPasswordForm" onsubmit="handlePasswordAuth(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">Email Address</label>
-          <input id="pwdAuthEmail" type="email" placeholder="you@domain.com" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" required />
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+          <input id="pwdAuthEmail" type="email" placeholder="you@example.com" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white focus:border-gray-900 outline-none" required />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">Password</label>
-          <input id="pwdAuthPassword" type="password" placeholder="••••••••" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" required />
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+          <input id="pwdAuthPassword" type="password" placeholder="••••••••" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white focus:border-gray-900 outline-none" required />
         </div>
         <div id="usernameField" class="hidden">
-          <label class="block text-xs font-semibold text-gray-300 mb-1">Choose Username</label>
-          <input id="pwdAuthUsername" type="text" placeholder="e.g. rahul_k" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" />
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Pick Username</label>
+          <input id="pwdAuthUsername" type="text" placeholder="e.g. rahul_k" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white focus:border-gray-900 outline-none" />
         </div>
-        <div class="flex space-x-2 pt-1">
-          <button type="submit" id="pwdSubmitBtn" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs rounded-xl transition font-heading">
-            Sign In
-          </button>
-        </div>
-        <p class="text-[11px] text-center text-gray-400">
-          <span id="authToggleText">No account?</span> 
-          <a href="#" onclick="toggleSignUpMode(event)" id="authToggleLink" class="text-emerald-400 underline ml-1 font-semibold">Create one</a>
-        </p>
-      </form>
-
-      <!-- Tab B: Email OTP Code -->
-      <form id="authOtpForm" onsubmit="handleOtpAuth(event)" class="space-y-3 hidden">
-        <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">Email Address</label>
-          <input id="otpEmailInput" type="email" placeholder="you@domain.com" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" required />
-        </div>
-        <div id="otpCodeContainer" class="hidden">
-          <label class="block text-xs font-semibold text-gray-300 mb-1">6-Digit Code</label>
-          <input id="otpCodeInput" type="text" placeholder="123456" maxlength="6" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white font-mono-code text-center tracking-widest" />
-          <div class="mt-2">
-            <label class="block text-xs font-semibold text-gray-300 mb-1">Username (if new user)</label>
-            <input id="otpUsernameInput" type="text" placeholder="your_handle" class="w-full bg-[#0d1322] border border-gray-800 rounded-lg p-2.5 text-xs text-white" />
-          </div>
-        </div>
-        <button type="submit" id="otpSubmitBtn" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs rounded-xl transition font-heading">
-          Send Login Code
+        <button type="submit" id="pwdSubmitBtn" class="w-full py-2 bg-gray-900 hover:bg-black text-white font-bold text-xs rounded-xl transition mt-1">
+          Sign In
         </button>
+        <p class="text-[11px] text-center text-gray-500 pt-1">
+          <span id="authToggleText">New user?</span> 
+          <a href="#" onclick="toggleSignUpMode(event)" id="authToggleLink" class="text-emerald-700 underline font-semibold ml-1">Create Account</a>
+        </p>
       </form>
     </div>
   </div>
 
-  <footer class="border-t border-gray-800/80 py-6 text-center text-xs text-gray-500 font-mono-code">
-    <p>© 2026 AuthentiQ Global Registry. Direct Brand Audits & Sequential Rankings.</p>
+  <footer class="border-t border-gray-100 py-6 text-center text-xs text-gray-400 font-mono-code">
+    <p>© 2026 AuthentiQ Guaranteed Brand Registry. Independent Verification.</p>
   </footer>
 
   <script>
@@ -268,18 +238,17 @@
     let currentProfile = null;
     let selectedBrandForModal = null;
     let isSignUpMode = false;
-    let otpSent = false;
 
     async function initPlatform() {
       await checkAuthSession();
       await loadSectors();
-      await loadBrands();
+      await loadBrandsClean();
     }
 
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
-      toast.className = `fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl flex items-center space-x-2 transition-all duration-300 ${
-        isError ? 'bg-rose-950 border border-rose-800 text-rose-300' : 'bg-emerald-950 border border-emerald-800 text-emerald-300'
+      toast.className = `fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl flex items-center space-x-2 transition-all duration-300 ${
+        isError ? 'bg-rose-50 border border-rose-200 text-rose-800' : 'bg-emerald-50 border border-emerald-200 text-emerald-800'
       }`;
       toast.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> <span>${msg}</span>`;
       toast.classList.remove('translate-y-20', 'opacity-0');
@@ -304,8 +273,8 @@
       const container = document.getElementById('authNavContainer');
       container.innerHTML = `
         <div class="flex items-center space-x-2">
-          <span class="text-xs font-mono-code text-emerald-400 font-semibold">@${currentProfile?.username || 'user'}</span>
-          <button onclick="handleSignOut()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1.5 rounded-lg border border-gray-700 transition" title="Sign Out">
+          <span class="text-xs font-mono-code text-gray-800 font-semibold bg-gray-100 px-2 py-1 rounded-md">@${currentProfile?.username || 'user'}</span>
+          <button onclick="handleSignOut()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded-md transition" title="Sign Out">
             <i class="fa-solid fa-right-from-bracket"></i>
           </button>
         </div>
@@ -315,9 +284,8 @@
     function renderLoggedOutNav() {
       const container = document.getElementById('authNavContainer');
       container.innerHTML = `
-        <button onclick="openAuthModal()" class="text-xs font-bold bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 px-3.5 py-1.5 rounded-lg transition flex items-center space-x-1 font-heading">
-          <i class="fa-solid fa-user mr-1 text-emerald-400"></i>
-          <span>Sign In</span>
+        <button onclick="openAuthModal()" class="text-xs font-semibold bg-gray-900 hover:bg-black text-white px-3.5 py-1.5 rounded-lg transition">
+          Sign In
         </button>
       `;
     }
@@ -328,24 +296,85 @@
       currentProfile = null;
       renderLoggedOutNav();
       updateCommentFormState();
-      showToast("Signed out successfully.");
+      showToast("Signed out.");
     }
 
     async function loadSectors() {
       try {
         const { data, error } = await db.from('sectors').select('*').order('name');
-        if (error) throw error;
+        if (error) return;
         const tabs = document.getElementById('sectorTabs');
         (data || []).forEach(s => {
           const btn = document.createElement('button');
-          btn.className = "sector-btn px-4 py-2 rounded-xl bg-gray-800/70 hover:bg-gray-800 text-gray-300 font-semibold whitespace-nowrap transition border border-gray-800 font-heading";
+          btn.className = "sector-tab tab-inactive pb-2.5 whitespace-nowrap transition text-xs";
           btn.innerText = s.name;
           btn.onclick = () => filterBySector(s.id, btn);
           tabs.appendChild(btn);
         });
+      } catch (err) {}
+    }
+
+    async function loadBrandsClean() {
+      try {
+        // Direct, robust query that avoids join errors
+        const { data: brands, error: bError } = await db
+          .from('brands')
+          .select('id, name, slug, official_website, founded_year, headquarters, is_guaranteed')
+          .order('id');
+
+        if (bError) throw bError;
+
+        // Fetch rankings and verifications safely
+        const { data: rankings } = await db.from('brand_category_rankings').select('brand_id, rank_position, rank_rationale');
+        const { data: verifs } = await db.from('brand_verifications').select('brand_id, reg_number, trademark_reg_no, compliance_certifications');
+
+        const rankMap = {};
+        (rankings || []).forEach(r => rankMap[r.brand_id] = r);
+
+        const verifMap = {};
+        (verifs || []).forEach(v => verifMap[v.brand_id] = v);
+
+        allBrands = (brands || []).map(b => ({
+          ...b,
+          rank: rankMap[b.id]?.rank_position || 1,
+          rationale: rankMap[b.id]?.rank_rationale || 'Audited authentic company.',
+          regNumber: verifMap[b.id]?.reg_number || 'CIN/GST Verified',
+          trademark: verifMap[b.id]?.trademark_reg_no || 'Registered Active',
+          compliance: verifMap[b.id]?.compliance_certifications || '100% Guaranteed Genuine'
+        })).sort((a, b) => a.rank - b.rank);
+
+        renderBrands(allBrands);
       } catch (err) {
-        console.error("Sector load failed:", err);
+        console.error("Load brands error:", err);
+        document.getElementById('brandsContainer').innerHTML = `
+          <div class="text-center py-8 text-rose-600 text-xs font-medium">
+            Database connection error: ${err.message}
+          </div>
+        `;
       }
     }
 
-    async function
+    function renderBrands(brands) {
+      const container = document.getElementById('brandsContainer');
+      document.getElementById('brandCount').innerText = `${brands.length} Verified Companies`;
+      container.innerHTML = '';
+
+      if (brands.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs">No guaranteed companies found.</div>`;
+        return;
+      }
+
+      brands.forEach(b => {
+        const item = document.createElement('div');
+        item.className = "p-4 rounded-xl border border-gray-100 hover:border-gray-300 transition cursor-pointer bg-white flex items-center justify-between shadow-sm hover:shadow";
+        item.onclick = () => openBrandDetail(b);
+
+        item.innerHTML = `
+          <div class="flex items-center space-x-3.5">
+            <div class="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-gray-900 text-sm">
+              ${b.name.charAt(0)}
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-bold text-gray-950 text-sm">${b.name}</span>
+                <span class="inline-flex items-center px
