@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuthentiQ - Founder Vault</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f9fafb; color: #111827; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- Master Gatekeeper Modal -->
+  <div id="gatekeeperModal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-gray-100 text-center">
+      <div class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-800 text-xl mx-auto mb-3">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2 class="text-base font-extrabold text-gray-950 mb-1">Founder Direct Access</h2>
+      <p class="text-xs text-gray-500 mb-4">Enter master passcode to unlock registry operations.</p>
+      <form onsubmit="handleUnlock(event)" class="space-y-3">
+        <input id="adminPassInput" type="password" placeholder="Passcode (authentiq2026)" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs text-center font-mono-code focus:bg-white focus:border-gray-900 outline-none" required />
+        <button type="submit" class="w-full py-2.5 bg-gray-900 hover:bg-black text-white font-bold text-xs rounded-xl transition">Unlock</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b border-gray-200 bg-white sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <a href="index.html" class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-200 transition text-xs font-bold">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <span class="text-sm font-bold text-gray-950">AuthentiQ <span class="text-emerald-600 font-mono-code text-xs">/ Founder Vault</span></span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="fetchAdminTelemetry()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+        </button>
+        <button onclick="lockWorkspace()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg transition">
+          <i class="fa-solid fa-lock mr-1"></i> Lock
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
+    
+    <!-- Telemetry Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="bg-white p-4 rounded-xl border border-gray-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Guaranteed Brands</span>
+        <div id="statBrands" class="text-xl font-extrabold text-gray-950 font-mono-code mt-1">-</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-gray-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total Sectors</span>
+        <div id="statSectors" class="text-xl font-extrabold text-gray-950 font-mono-code mt-1">-</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-gray-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Categories</span>
+        <div id="statCategories" class="text-xl font-extrabold text-gray-950 font-mono-code mt-1">-</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-gray-200">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Scam Reports</span>
+        <div id="statScams" class="text-xl font-extrabold text-rose-600 font-mono-code mt-1">-</div>
+      </div>
+    </div>
+
+    <!-- Direct Brand Ingestion Form (No ID / GSTIN needed) -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-6 shadow-sm">
+      <h3 class="text-sm font-bold text-gray-900 mb-1">Direct Brand Ingestion Engine</h3>
+      <p class="text-xs text-gray-500 mb-4">Add a genuine company and assign its sequential rank position.</p>
+      
+      <form onsubmit="handleDirectIngest(event)" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Brand Name</label>
+            <input id="brandName" type="text" placeholder="e.g. Patagonia" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:bg-white focus:border-gray-900 outline-none" required />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Official Domain</label>
+            <input id="brandUrl" type="url" placeholder="https://..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:bg-white focus:border-gray-900 outline-none" required />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Target Category</label>
+            <select id="brandCategorySelect" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:bg-white focus:border-gray-900 outline-none" required></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Sequential Rank (#)</label>
+            <input id="brandRank" type="number" min="1" max="100" placeholder="1" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs font-mono-code focus:bg-white focus:border-gray-900 outline-none" required />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Founded Year (Strict 4 Digits)</label>
+            <input id="brandYear" type="text" maxlength="4" placeholder="e.g. 2018" pattern="[1-2][0-9]{3}" title="Enter a valid 4-digit year (e.g. 2018)" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs font-mono-code focus:bg-white focus:border-gray-900 outline-none" required />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Headquarters</label>
+            <input id="brandHq" type="text" placeholder="e.g. California, USA" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:bg-white focus:border-gray-900 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Audit Rationale</label>
+            <input id="brandRationale" type="text" placeholder="Verified active brand, genuine warranty & service guarantee." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:bg-white focus:border-gray-900 outline-none" required />
+          </div>
+        </div>
+
+        <button type="submit" id="ingestBtn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition">
+          Publish Brand to Live Registry
+        </button>
+      </form>
+    </div>
+
+    <!-- Scam Incident Feed -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+      <h3 class="text-sm font-bold text-gray-900 mb-1">Reported Scam Feed</h3>
+      <p class="text-xs text-gray-500 mb-4">Consumer-submitted fraudulent websites for moderation[span_14](start_span)[span_14](end_span).</p>
+      <div id="scamsContainer" class="space-y-2 text-xs">
+        <p class="text-gray-400">Loading reports...</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-gray-200 py-4 text-center text-xs text-gray-400 font-mono-code">
+    AuthentiQ Founder Portal • 2026
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://yadcxfczozsydrexquev.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_S-81oDv-dMWj8j0HsjrAoA_p_-c7TzJ";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function handleUnlock(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('adminPassInput').value.trim();
+      if (pwd === "authentiq2026") {
+        sessionStorage.setItem('admin_auth', '1');
+        document.getElementById('gatekeeperModal').classList.add('hidden');
+        initAdmin();
+      } else {
+        alert("Incorrect passcode.");
+      }
+    }
+
+    function lockWorkspace() {
+      sessionStorage.removeItem('admin_auth');
+      location.reload();
+    }
+
+    function checkPasscode() {
+      if (sessionStorage.getItem('admin_auth') === '1') {
+        document.getElementById('gatekeeperModal').classList.add('hidden');
+        initAdmin();
+      }
+    }
+
+    async function initAdmin() {
+      await fetchAdminTelemetry();
+      await loadCategoryDropdown();
+      await loadScamFeed();
+    }
+
+    async function fetchAdminTelemetry() {
+      const { count: bCount } = await db.from('brands').select('*', { count: 'exact', head: true });
+      const { count: sCount } = await db.from('sectors').select('*', { count: 'exact', head: true });
+      const { count: cCount } = await db.from('categories').select('*', { count: 'exact', head: true });
+      const { count: mCount } = await db.from('scam_reports').select('*', { count: 'exact', head: true });
+
+      document.getElementById('statBrands').innerText = bCount || 0;
+      document.getElementById('statSectors').innerText = sCount || 0;
+      document.getElementById('statCategories').innerText = cCount || 0;
+      document.getElementById('statScams').innerText = mCount || 0;
+    }
+
+    async function loadCategoryDropdown() {
+      const sel = document.getElementById('brandCategorySelect');
+      sel.innerHTML = '';
+      const { data } = await db.from('categories').select('id, name').order('name');
+      (data || []).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.innerText = c.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function handleDirectIngest(e) {
+      e.preventDefault();
+      const btn = document.getElementById('ingestBtn');
+
+      const name = document.getElementById('brandName').value.trim();
+      const website = document.getElementById('brandUrl').value.trim();
+      const categoryId = parseInt(document.getElementById('brandCategorySelect').value);
+      const rank = parseInt(document.getElementById('brandRank').value);
+      const yearStr = document.getElementById('brandYear').value.trim();
+      const hq = document.getElementById('brandHq').value.trim() || 'Verified Office';
+      const rationale = document.getElementById('brandRationale').value.trim();
+
+      // Strict 4-digit Year Validation
+      if (!/^\d{4}$/.test(yearStr)) {
+        alert("Year must be exactly 4 digits (e.g. 2018).");
+        return;
+      }
+      const year = parseInt(yearStr);
+      if (year < 1800 || year > 2026) {
+        alert("Year must be between 1800 and 2026.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Ingesting...";
+      const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+      try {
+        const { data: bData, error: bErr } = await db
+          .from('brands')
+          .insert([{ name, slug, official_website: website, founded_year: year, headquarters: hq, is_guaranteed: true }])
+          .select()
+          .single();
+
+        if (bErr) throw bErr;
+
+        await db.from('brand_category_rankings').insert([{
+          brand_id: bData.id,
+          category_id: categoryId,
+          rank_position: rank,
+          rank_rationale: rationale
+        }]);
+
+        alert(`Brand "${name}" published successfully!`);
+        e.target.reset();
+        await fetchAdminTelemetry();
+      } catch (err) {
+        alert("Error ingesting brand: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Publish Brand to Live Registry";
+      }
+    }
+
+    async function loadScamFeed() {
+      const container = document.getElementById('scamsContainer');
+      const { data, error } = await db.from('scam_reports').select('*').order('reported_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-400">No scam incidents reported.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      data.forEach(s => {
+        const row = document.createElement('div');
+        row.className = "p-3 rounded-lg bg-gray-50 border border-gray-200";
+        row.innerHTML = `
+          <div class="flex justify-between font-mono-code text-[11px] text-gray-500 mb-1">
+            <span class="text-rose-600 font-bold">${s.reported_brand_or_url}</span>
+            <span>${new Date(s.reported_at).toLocaleDateString()}</span>
+          </div>
+          <p class="text-gray-700">${s.incident_details}</p>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    window.onload = checkPasscode;
+  </script>
+</body>
+</html>
